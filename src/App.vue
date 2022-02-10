@@ -1,28 +1,19 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
-  </div>
+    <div id="app">
+		<div>hahhaha</div>
+        <div>年龄：{{this.$store.state.age}}</div>
+        <div>计算属性：{{this.$store.getters.myAge}}</div>
+        <button @click="$store.state.age++">年龄+1</button>
+	</div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
-
 export default {
-  name: "App",
-  components: {
-    HelloWorld,
-  },
-};
+    // App组件在创建的时候也会创建一个Vue实例
+    name: "App",
+    mounted(){
+        console.log(this.$store);
+    }
+}
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
