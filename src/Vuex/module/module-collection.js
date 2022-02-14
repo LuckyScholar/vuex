@@ -5,6 +5,14 @@ class ModuleCollection{
     constructor(options){
         this.register([],options)
     }
+    getNamespaced(path){
+        // 命名空间参数就是一个字符串
+        let root = this.root; // 从根模块找起
+        return path.reduce((str,key)=>{ // path例如是[a/c]
+            root = root.getChild(key)   // 不停地找当前的模块
+            return str+(root.namespaced? key+'/' : '')  // 如 a/c
+        },'')   
+    }
     // 注册模块
     register(path,rootModule){
         // 将以下逻辑封装成类方便拓展

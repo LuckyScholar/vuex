@@ -1,5 +1,9 @@
 import Vue from "vue"
 import Vuex from "@/Vuex"
+
+// 引用框架的vuex
+// import Vuex from "vuex"
+
 import a from "./a"
 import b from "./b"
 // 1.Vue.use(Vuex) Vuex是个对象 里面有install方法

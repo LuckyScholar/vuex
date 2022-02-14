@@ -11,11 +11,6 @@ export default {
         },
     },
     actions: {
-        changeAge({ commit }, payload) {
-            setTimeout(() => {
-                console.log("c模块---actions")
-                commit("changeAge", payload)
-            }, 1000)
-        },
+        
     },
 }
