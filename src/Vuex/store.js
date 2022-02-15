@@ -35,8 +35,12 @@ const installModule = (store, rootState, path, module) => {
         let parent = path.slice(0, -1).reduce((memo, current) => {
             return memo[current]
         }, rootState)
-        // 如果这个对象本身不是响应式的 用Vue.set变成响应式的
-        Vue.set(parent, path[path.length - 1], module.state)
+        // 严格模式下增加同步watcher，监控状态变化
+        store._withCommitting(()=>{
+            // 如果这个对象本身不是响应式的 用Vue.set变成响应式的
+            Vue.set(parent, path[path.length - 1], module.state)
+        })
+        
     }
 
     // 要对当前模块进行操作  遍历当前模块上的mutations actions gettters 都把这些方法定义在Module类上
@@ -45,8 +49,12 @@ const installModule = (store, rootState, path, module) => {
         store._mutations[namespace+key] = store._mutations[namespace+key] || []
         // 往里面添加用户传进来的mutation函数
         store._mutations[namespace+key].push(payload => {
-            // this指向对应的store实例 参数是状态state 和用户传进来的值payload
-            mutation.call(store, module.state, payload)
+            // 保证同步更改 严格模式下增加同步watcher，监控状态变化
+            store._withCommitting(()=>{
+                // this指向对应的store实例 参数是状态state 和用户传进来的值payload
+                mutation.call(store, module.state, payload)
+            })
+            
         })
     })
     module.forEachAction((action, key) => {
@@ -88,6 +96,13 @@ function resetStoreVM(store,state){
         computed  //计算属性有缓存
     })
 
+    // 区分mutation和action mutation同步更改数据
+    if(store.strict){
+        // 只要状态一变化会立即执行 在状态变化后同步执行 用户自定义的watcher监听vuex数据的改变
+        store._vm.$watch(()=>store._vm._data.$$state,()=>{
+            console.assert(store._committing,'在mutations之外更改了状态')
+        },{deep:true,sync:true})    // watcher 立即同步执行 async异步
+    }
 }
 
 export let Vue // install执行Vue就有值 就拿到Vue的构造函数 就能new Store
@@ -99,6 +114,10 @@ export class Store {
         this._actions = {}
         this._mutations = {}
         this._wrappedGetters = {}
+
+        this.strict = options.strict    // 说明是严格模式
+        // 同步的watcher
+        this._committing = false
 
         // 数据的格式化 格式化成我想要的树结构
         // 1.模块收集
@@ -158,6 +177,14 @@ export class Store {
         //     this.actions[key] = (payload)=> fn(this,payload)
         // })
     }
+
+    _withCommitting(fn) {
+        let committing = this._committing;
+        this._committing = true; // 在函数调用前 表示_committing为true是同步的  如果为fasle是异步再执行fn就会报错
+        fn();
+        this._committing = committing;
+    }
+
     // 在严格模式下 mutations和actions是有区别的
     commit = (type, payload) => {
         // 使用箭头函数是为了保证当前的this 指向当前store实例

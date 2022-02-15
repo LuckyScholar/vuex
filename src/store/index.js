@@ -13,6 +13,7 @@ import b from "./b"
 Vue.use(Vuex) // 使用这个插件 内部会调用install方法
 
 const store = new Vuex.Store({
+    strict:true, // 严格模式 严格模式下只能通过mutations同步更改状态 其他都不行(如actions 或者直接state.xxx都会报错)
     state: {
         // 相当于data
         age: 10,
